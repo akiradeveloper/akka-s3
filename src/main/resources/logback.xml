@@ -1,0 +1,15 @@
+<configuration>
+  <appender name="HTTP_LOG" class="ch.qos.logback.core.FileAppender">
+    <file>http.log</file>
+    <append>false</append>
+    <encoder>
+      <pattern>%date{HH:mm:ss.SSS,SSS} %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <logger name="akka.actor.RepointableActorRef" level="DEBUG">
+    <appender-ref ref="HTTP_LOG"/>
+  </logger>
+
+  <root level="OFF"/>
+</configuration>
