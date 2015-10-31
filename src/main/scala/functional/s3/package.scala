@@ -1,11 +1,17 @@
 package functional
 
 import java.io.IOException
+import akka.http.scaladsl.model.Uri.Query
+import akka.http.scaladsl.server.util.Tuple
+
+import scala.collection.mutable
 import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file._
 
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
+import akka.http.scaladsl.model.{HttpRequest, Multipart}
+import akka.http.scaladsl.model.Multipart.FormData
+import akka.stream.{Materializer, ActorMaterializer}
 import akka.stream.scaladsl.{Sink, Source}
 import akka.util.ByteString
 import org.apache.commons.codec.digest.DigestUtils
@@ -14,6 +20,7 @@ import org.apache.tika.Tika
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
+import scala.util.{Failure, Success}
 
 package object s3 {
   // Closeable < AutoCloseable
@@ -26,13 +33,14 @@ package object s3 {
   }
 
   implicit class PathOps(path: Path) {
-    def writeBytes(data: Source[ByteString, _]): Unit = {
-      implicit val system = ActorSystem()
-      implicit val mat = ActorMaterializer()
+    def writeBytes(data: Source[ByteString, _])(implicit system: ActorSystem, mat: Materializer): Unit = {
+//      implicit val system = ActorSystem()
+//      implicit val mat = ActorMaterializer()
       using(Files.newOutputStream(path, StandardOpenOption.CREATE)) { f =>
         data.runWith(Sink.foreach { a =>
           f.write(a.toArray)
         })
+        f.flush
       }
     }
 
@@ -117,19 +125,18 @@ package object s3 {
   object KVList {
     case class t(unwrap: Seq[(String, String)]) {
       def get(key: String): Option[String] = unwrap.find{a => a._1.toLowerCase == key.toLowerCase}.map(_._2)
-      def ++(other: t): t = t(unwrap ++ other.unwrap)
     }
     def builder: Builder = Builder()
     case class Builder() {
-      val m = mutable.Map[String, String]()
+      val l = mutable.ListBuffer[(String, String)]()
       def append(k: String, v: Option[String]): this.type = {
         if (v.isDefined) {
-          m += k -> v.get
+          l += k -> v.get
         }
         this
       }
       def build: t = {
-        t(m.toSeq)
+        t(l)
       }
     }
   }
@@ -174,6 +181,50 @@ package object s3 {
         case (Some(_), _) => a
         case _ => b
       }
+    }
+  }
+
+  trait HeaderList {
+    def get(name: String): Option[String]
+    // def filter(p: String => Boolean): Seq[(String, String)]
+  }
+
+  object HeaderList {
+    case class FromRequestHeaders(req: HttpRequest) extends HeaderList {
+      def get(name: String): Option[String] = {
+        req.headers.find(_.is(name.toLowerCase)).map(_.value)
+      }
+    }
+    case class FromRequestQuery(q: Query) extends HeaderList {
+      def get(name: String): Option[String] = {
+        q.get(name)
+      }
+    }
+    case class Aggregate(xs: Seq[HeaderList]) extends HeaderList {
+      def get(name: String) = {
+        var ret: Option[String] = None
+        xs.foreach { x =>
+          ret = ret <+ x.get(name)
+        }
+        ret
+      }
+    }
+    case class PostData(mfd: Multipart.FormData) extends HeaderList {
+      var file: Source[ByteString, Any] = _
+      val tmp = mutable.ListBuffer[(String, String)]()
+      mfd.parts.runForeach { part =>
+        val name: String = part.name
+        if (name == "file") {
+          file = part.entity.dataBytes
+        } else {
+          part.entity.dataBytes.runForeach { data =>
+            val str: String = data.decodeString("UTF-8")
+            tmp += Pair(name, str)
+          }
+        }
+      }
+      val headerList = KVList.t(tmp)
+      override def get(name: String) = headerList.get(name)
     }
   }
 }
