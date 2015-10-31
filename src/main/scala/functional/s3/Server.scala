@@ -1,7 +1,9 @@
 package functional.s3
 
+import akka.http.scaladsl.model.{StatusCodes, HttpRequest, HttpHeader}
+import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.server.{ExceptionHandler, Route}
 
 case class Server(config: ServerConfig) {
   val extractBucket = path(Segment ~ (Slash | PathEnd))
@@ -28,7 +30,52 @@ case class Server(config: ServerConfig) {
 
   val users = UserTable(config.adminPath)
 
+  def RawHeaderList(xs: (String, String)*): Seq[HttpHeader] = {
+    xs.map { a => RawHeader(a._1, a._2) }
+  }
+
+  case class AuthorizedContext(callerId: Option[String], requestId: String)
+
+  def handler(req: HttpRequest, requestId: String) = ExceptionHandler {
+    // FIXME error should sometimes contains header info such as x-amz-delete-marker
+    case Error.Exception(e) => {
+      val headers = RawHeaderList(
+        (X_AMZ_REQUEST_ID, requestId)
+      )
+      val o = Error.toCodeAndMessage(e)
+      // Don't forget a caller ctx otherwise completion flies to unknown somewhere
+      complete(
+        o.code,
+        headers,
+        Error.mkXML(o, req.uri.path.toString(), requestId)
+      )
+    }
+    case e: Throwable => {
+      e.printStackTrace
+      val headers = RawHeaderList(
+        (X_AMZ_REQUEST_ID, requestId)
+      )
+      val ste: StackTraceElement = e.getStackTrace()(0)
+      val msg = s"${ste.getFileName}(${ste.getLineNumber}) ${e.getMessage}"
+      val o = Error.toCodeAndMessage(Error.InternalError(msg))
+      complete(
+        StatusCodes.InternalServerError,
+        headers,
+        Error.mkXML(o, req.uri.path.toString(), requestId)
+      )
+    }
+  }
+
+  val nullHandler = ExceptionHandler {
+    case _ => complete("error!")
+  }
+
   val route =
+    handleExceptions(nullHandler) {
+      myroute
+    }
+
+  val myroute =
     get {
       path("") {
         doGetService()

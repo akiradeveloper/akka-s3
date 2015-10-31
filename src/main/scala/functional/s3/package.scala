@@ -17,6 +17,9 @@ import org.apache.tika.Tika
 import scala.collection.JavaConversions._
 
 package object s3 {
+  val X_AMZ_DELETE_MARKER = "x-amz-delete-marker"
+  val X_AMZ_VERSION_ID = "x-amz-version-id"
+  val X_AMZ_REQUEST_ID = "x-amz-request-id"
 
   implicit val system = ActorSystem()
   implicit val mat = ActorMaterializer()
