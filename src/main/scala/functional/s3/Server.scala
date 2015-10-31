@@ -1,14 +1,18 @@
 package functional.s3
 
-import akka.http.scaladsl.model.{StatusCodes, HttpRequest, HttpHeader}
 import akka.http.scaladsl.model.headers.RawHeader
+import akka.http.scaladsl.model.{HttpHeader, HttpRequest, StatusCodes}
 import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.{ExceptionHandler, Route}
+import akka.http.scaladsl.server.ExceptionHandler
+
+import scala.util.Random
 
 case class Server(config: ServerConfig) {
   val extractBucket = path(Segment ~ (Slash | PathEnd))
   val extractObject = path(Segment / Rest)
 
+  def doOptionObject(req: HttpRequest, reqId: String) = complete("hoge")
+  def doPostObject(req: HttpRequest, reqId: String) = complete("hoge")
   def doGetService() = complete("hoge")
   def doGetBucketLocation(bucketName: String) = complete("hoge")
   def doGetBucket(bucketName: String) = complete("hoge")
@@ -184,6 +188,45 @@ case class Server(config: ServerConfig) {
     head {
       extractObject { (bucketName, keyName) =>
         doHeadObject(bucketName, keyName)
+      }
+    }
+
+  val route =
+    extractRequest { req =>
+      logRequestResult("") {
+        val requestId = Random.alphanumeric.take(16).mkString
+        handleExceptions(nullHandler) {
+          doOptionObject(req, requestId) ~
+          doPostObject(req, requestId) ~
+          extractRequest { req =>
+            val authResult: (Option[String], Boolean) =
+              if (HeaderList.FromRequestHeaders(req).get("Authorization").isDefined) {
+                (None, true)
+                //              val a = Stream(AuthV2(req, m), AuthV4()).map(_.run).find(_.isDefined).flatten
+                //              a.isDefined.orFailWith(Error.SignatureDoesNotMatch())
+                //              a
+              } else if (HeaderList.FromRequestQuery(req.uri.query).get("Signature").isDefined) {
+                //              val a = Stream(AuthV2Presigned(req, m)).map(_.run).find(_.isDefined).flatten
+                //              a.isDefined.orFailWith(Error.SignatureDoesNotMatch())
+                //              a
+                (None, true)
+              } else if (HeaderList.FromRequestQuery(req.uri.query).get("X-Amz-Signature").isDefined) {
+                //              val a = Stream(AuthV4Presigned()).map(_.run).find(_.isDefined).flatten
+                //              a.isDefined.orFailWith(Error.SignatureDoesNotMatch())
+                //              a
+                (None, true)
+              } else {
+                (None, false)
+              }
+
+            val callerId = authResult match {
+              case (None, true) => Error.failWith(Error.SignatureDoesNotMatch())
+              case (a, _) => a.flatMap { x => users.getId(x) }
+            }
+
+            complete("hoge")
+          }
+        }
       }
     }
 }
