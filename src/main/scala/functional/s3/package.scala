@@ -23,6 +23,10 @@ import scala.collection.mutable
 import scala.util.{Failure, Success}
 
 package object s3 {
+
+  implicit val system = ActorSystem()
+  implicit val mat = ActorMaterializer()
+
   // Closeable < AutoCloseable
   def using[A <: AutoCloseable, B](resource: A)(f: A => B): B = {
     try {
@@ -209,7 +213,7 @@ package object s3 {
         ret
       }
     }
-    case class PostData(mfd: Multipart.FormData)(implicit mat: Materializer) extends HeaderList {
+    case class PostData(mfd: Multipart.FormData) extends HeaderList {
       var file: Source[ByteString, Any] = _
       val tmp = mutable.ListBuffer[(String, String)]()
       mfd.parts.runForeach { part =>

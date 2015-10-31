@@ -3,15 +3,13 @@ package functional.s3
 import java.io.BufferedOutputStream
 import java.nio.file.{Files, Path, StandardCopyOption}
 
-import akka.actor.ActorSystem
-import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import org.apache.commons.io.IOUtils
 
 import scala.collection.JavaConversions._
 
-case class Upload(parent: Key, path: Path)(implicit system: ActorSystem, mat: Materializer) {
+case class Upload(parent: Key, path: Path) {
 
   // exists while this upload is being initiated
   // (not until completed)
