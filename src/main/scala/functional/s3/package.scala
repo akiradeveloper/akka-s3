@@ -37,9 +37,9 @@ package object s3 {
 //      implicit val system = ActorSystem()
 //      implicit val mat = ActorMaterializer()
       using(Files.newOutputStream(path, StandardOpenOption.CREATE)) { f =>
-        data.runWith(Sink.foreach { a =>
+        data.runForeach { a =>
           f.write(a.toArray)
-        })
+        }
         f.flush
       }
     }
@@ -209,16 +209,18 @@ package object s3 {
         ret
       }
     }
-    case class PostData(mfd: Multipart.FormData) extends HeaderList {
+    case class PostData(mfd: Multipart.FormData)(implicit mat: Materializer) extends HeaderList {
       var file: Source[ByteString, Any] = _
       val tmp = mutable.ListBuffer[(String, String)]()
       mfd.parts.runForeach { part =>
-        val name: String = part.name
+        val name = part.name
+        val entity = part.entity
         if (name == "file") {
           file = part.entity.dataBytes
         } else {
           part.entity.dataBytes.runForeach { data =>
-            val str: String = data.decodeString("UTF-8")
+            val charset = entity.contentType.charset.value
+            val str = data.decodeString(charset)
             tmp += Pair(name, str)
           }
         }
