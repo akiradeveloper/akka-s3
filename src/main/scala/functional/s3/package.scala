@@ -156,6 +156,10 @@ package object s3 {
     }
   }
 
+  implicit class Pipe[A](unwrap: A) {
+    def `|>`[B](f: A => B): B = f(unwrap)
+  }
+
   implicit class ApplyIf[A](a: A) {
     def applyIf(p: => Boolean)(f: A => A): A = {
       if (p) {
