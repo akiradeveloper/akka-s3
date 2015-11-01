@@ -8,6 +8,8 @@ import akka.http.scaladsl.server.ExceptionHandler
 import scala.collection.immutable
 import scala.util.Random
 
+import akka.http.scaladsl.marshallers.xml.ScalaXmlSupport._
+
 trait RouteUtil {
   val extractBucket = path(Segment ~ (Slash | PathEnd))
   val extractObject = path(Segment / Rest)
