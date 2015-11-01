@@ -161,7 +161,7 @@ package object s3 {
       }
     }
     // FIXME not sure this is correct
-    def applySome[B, C](x: Option[B])(f: A => B => C): C = {
+    def applySome[B, C >: A](x: Option[B])(f: A => B => C): C = {
       x match {
         case Some(b) => f(a)(b)
         case None => a.asInstanceOf[C]
