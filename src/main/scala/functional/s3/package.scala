@@ -23,6 +23,9 @@ package object s3 {
   val X_AMZ_VERSION_ID = "x-amz-version-id"
   val X_AMZ_REQUEST_ID = "x-amz-request-id"
 
+  val CONTENT_TYPE = "content-type"
+  val CONTENT_DISPOSITION = "content-disposition"
+
   implicit val system = ActorSystem()
   implicit val mat = ActorMaterializer()
 
@@ -157,10 +160,11 @@ package object s3 {
         a
       }
     }
-    def applySome[B](x: Option[B])(f: A => B => A) = {
+    // FIXME not sure this is correct
+    def applySome[B, C](x: Option[B])(f: A => B => C): C = {
       x match {
         case Some(b) => f(a)(b)
-        case None => a
+        case None => a.asInstanceOf[C]
       }
     }
   }

@@ -43,11 +43,11 @@ trait PutObject { self: AuthorizedContext =>
     v.commit
 
     val headers =
-      (ETag(newETag) +:
+      ETag(newETag) +:
       immutable.Seq (
         (X_AMZ_REQUEST_ID, requestId),
         (X_AMZ_VERSION_ID, "null")
-      ).map(toRawHeader))
+      ).map(toRawHeader)
       // CORS: Actual request after preflight also contains Origin header
       // and the server should return Access-Control-Allow-Origin as well as response to preflight request.
       .applySome(hl.get("Origin")) { a => b => `Access-Control-Allow-Origin`(HttpOrigin(b)) +: a }
