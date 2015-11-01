@@ -4,8 +4,10 @@ import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.model.{HttpHeader, HttpRequest, StatusCodes}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.ExceptionHandler
+import akka.http.scaladsl.marshallers.xml.ScalaXmlSupport._
 
 import scala.util.Random
+import scala.collection.immutable
 
 case class Server(config: ServerConfig) {
   val extractBucket = path(Segment ~ (Slash | PathEnd))
@@ -34,39 +36,39 @@ case class Server(config: ServerConfig) {
 
   val users = UserTable(config.adminPath)
 
-  def RawHeaderList(xs: (String, String)*): Seq[HttpHeader] = {
-    xs.map { a => RawHeader(a._1, a._2) }
-  }
+  val toRawHeader = (a: (String, String)) => RawHeader(a._1, a._2)
 
   case class AuthorizedContext(callerId: Option[String], requestId: String)
 
   def handler(req: HttpRequest, requestId: String) = ExceptionHandler {
     // FIXME error should sometimes contains header info such as x-amz-delete-marker
     case Error.Exception(e) => {
-      val headers = RawHeaderList(
+      // headers should be immutable.Seq
+      val headers = immutable.Seq(
         (X_AMZ_REQUEST_ID, requestId)
-      )
+      ).map(toRawHeader)
+
       val o = Error.toCodeAndMessage(e)
       // Don't forget a caller ctx otherwise completion flies to unknown somewhere
+
       complete(
         o.code,
         headers,
-        Error.mkXML(o, req.uri.path.toString(), requestId)
-      )
+        Error.mkXML(o, req.uri.path.toString(), requestId))
     }
     case e: Throwable => {
       e.printStackTrace
-      val headers = RawHeaderList(
+      val headers = immutable.Seq(
         (X_AMZ_REQUEST_ID, requestId)
-      )
+      ).map(toRawHeader)
+
       val ste: StackTraceElement = e.getStackTrace()(0)
       val msg = s"${ste.getFileName}(${ste.getLineNumber}) ${e.getMessage}"
       val o = Error.toCodeAndMessage(Error.InternalError(msg))
       complete(
         StatusCodes.InternalServerError,
         headers,
-        Error.mkXML(o, req.uri.path.toString(), requestId)
-      )
+        Error.mkXML(o, req.uri.path.toString(), requestId))
     }
   }
 
@@ -210,11 +212,14 @@ case class Server(config: ServerConfig) {
                 (None, false)
               }
 
-            val callerId = authResult match {
-              case (None, true) => Error.failWith(Error.SignatureDoesNotMatch())
+            val callerId: Option[String] = authResult match {
+              case (None, true) =>
+                Error.failWith(Error.SignatureDoesNotMatch())
+                None
               case (a, _) => a.flatMap { x => users.getId(x) }
             }
 
+            val context = AuthorizedContext(callerId, requestId)
             normalRoute
           }
         }
