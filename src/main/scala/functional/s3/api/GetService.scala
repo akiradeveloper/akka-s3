@@ -4,13 +4,15 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import scala.collection.immutable
 
-import akka.http.scaladsl.marshallers.xml.ScalaXmlSupport._
+import akka.http.scaladsl.marshallers.xml.ScalaXmlSupport
 
-trait GetService { self: AuthorizedContext =>
+trait GetService extends ScalaXmlSupport { self: AuthorizedContext =>
   def doGetService() = {
     val headers = immutable.Seq(
       (X_AMZ_REQUEST_ID, requestId)
     ).map(toRawHeader)
+
+    // FIXME if the user is public?
 
     // FIXME
     // only ones belong to the caller will be listed

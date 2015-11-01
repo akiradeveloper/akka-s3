@@ -25,7 +25,6 @@ case class Server(config: ServerConfig) extends RouteUtil {
   def doOptionsObject(req: HttpRequest, reqId: String) = complete("hoge")
   def doPostObject(req: HttpRequest, reqId: String) = complete("hoge")
 
-
   val tree = Tree(config.treePath)
   val users = UserTable(config.adminPath)
 
