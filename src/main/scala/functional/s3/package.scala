@@ -4,6 +4,8 @@ import java.io.IOException
 
 import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file._
+import java.text.SimpleDateFormat
+import java.util.{TimeZone, Date}
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.{HttpRequest, Multipart}
@@ -107,6 +109,9 @@ package object s3 {
         }
       }
     })
+    def lastModified: Date = {
+      new Date(Files.getLastModifiedTime(path).toMillis)
+    }
   }
 
   implicit class StringOps(self: String) {
@@ -119,6 +124,15 @@ package object s3 {
       } catch {
         case _: Throwable =>  None
       }
+    }
+  }
+
+  implicit class DateOps(self: Date) {
+    // 'Z' means UTC
+    def format000Z = {
+      val sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+      sdf.setTimeZone(TimeZone.getTimeZone("UTC"))
+      sdf.format(self)
     }
   }
 
