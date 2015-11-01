@@ -11,7 +11,7 @@ case class Server(config: ServerConfig) {
   val extractBucket = path(Segment ~ (Slash | PathEnd))
   val extractObject = path(Segment / Rest)
 
-  def doOptionObject(req: HttpRequest, reqId: String) = complete("hoge")
+  def doOptionsObject(req: HttpRequest, reqId: String) = complete("hoge")
   def doPostObject(req: HttpRequest, reqId: String) = complete("hoge")
   def doGetService() = complete("hoge")
   def doGetBucketLocation(bucketName: String) = complete("hoge")
@@ -70,16 +70,7 @@ case class Server(config: ServerConfig) {
     }
   }
 
-  val nullHandler = ExceptionHandler {
-    case _ => complete("error!")
-  }
-
-  val route =
-    handleExceptions(nullHandler) {
-      myroute
-    }
-
-  val myroute =
+  val normalRoute =
     get {
       path("") {
         doGetService()
@@ -195,8 +186,8 @@ case class Server(config: ServerConfig) {
     extractRequest { req =>
       logRequestResult("") {
         val requestId = Random.alphanumeric.take(16).mkString
-        handleExceptions(nullHandler) {
-          doOptionObject(req, requestId) ~
+        handleExceptions(handler(req, requestId)) {
+          doOptionsObject(req, requestId) ~
           doPostObject(req, requestId) ~
           extractRequest { req =>
             val authResult: (Option[String], Boolean) =
@@ -224,7 +215,7 @@ case class Server(config: ServerConfig) {
               case (a, _) => a.flatMap { x => users.getId(x) }
             }
 
-            complete("hoge")
+            normalRoute
           }
         }
       }
