@@ -15,10 +15,6 @@ trait RouteUtil {
   val extractObject = path(Segment / Rest)
   val toRawHeader = (a: (String, String)) => RawHeader(a._1, a._2)
 
-  implicit class HttpRequestOps(unwrap: HttpRequest) {
-    def listFromHeaders = HeaderList.FromRequestHeaders(unwrap)
-    def listFromQueryParams = HeaderList.FromRequestQuery(unwrap.uri.query)
-  }
 }
 
 case class Server(config: ServerConfig) extends RouteUtil {

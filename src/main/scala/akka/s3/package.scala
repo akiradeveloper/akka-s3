@@ -7,6 +7,7 @@ import java.text.SimpleDateFormat
 import java.util.{Date, TimeZone}
 
 import akka.actor.ActorSystem
+import akka.http.scaladsl.model.HttpRequest
 import akka.stream.scaladsl.Source
 import akka.stream.{ActorMaterializer, Materializer}
 import akka.util.ByteString
@@ -26,6 +27,11 @@ package object s3 {
 
   implicit val system = ActorSystem()
   implicit val mat = ActorMaterializer()
+
+  implicit class HttpRequestOps(unwrap: HttpRequest) {
+    def listFromHeaders = HeaderList.FromRequestHeaders(unwrap)
+    def listFromQueryParams = HeaderList.FromRequestQuery(unwrap.uri.query)
+  }
 
   // Closeable < AutoCloseable
   def using[A <: AutoCloseable, B](resource: A)(f: A => B): B = {

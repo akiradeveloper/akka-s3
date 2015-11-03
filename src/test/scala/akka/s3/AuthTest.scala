@@ -27,9 +27,8 @@ class AuthTest extends FunSuite {
         )
       )
 
-    assert(false)
-//    val auth = new AuthV2(req, Map(accessKey -> secretKey))
-//    assert(auth.run.isDefined)
+    val auth = AuthV2(req, Map(accessKey -> secretKey))
+    assert(auth.run.isDefined)
   }
 
   test("example2") {
@@ -46,9 +45,8 @@ class AuthTest extends FunSuite {
         )
       )
 
-    assert(false)
-//    val auth = new AuthV2(req, Map(accessKey -> secretKey))
-//    assert(auth.run.isDefined)
+    val auth = AuthV2(req, Map(accessKey -> secretKey))
+    assert(auth.run.isDefined)
   }
 
   test("example3") {
@@ -59,9 +57,8 @@ class AuthTest extends FunSuite {
         protocol = `HTTP/1.0`
       )
 
-    assert(false)
-//    val auth = new AuthV2Presigned(req, Map(accessKey -> secretKey))
-//    assert(auth.run.isDefined)
+    val auth = AuthV2Presigned(req, Map(accessKey -> secretKey))
+    assert(auth.run.isDefined)
   }
 
   test("actual case1: bucket path") {
@@ -77,9 +74,8 @@ class AuthTest extends FunSuite {
         )
       )
 
-    assert(false)
-//    val auth = AuthV2(req, Map("myid" -> "mykey"))
-//    assert(auth.run.isDefined)
+    val auth = AuthV2(req, Map("myid" -> "mykey"))
+    assert(auth.run.isDefined)
   }
 
   test("actual case2: multipart download") {
@@ -95,8 +91,7 @@ class AuthTest extends FunSuite {
         )
       )
 
-    assert(false)
-//    val auth = AuthV2(req, Map("myid" -> "mykey"))
-//    assert(auth.run.isDefined)
+    val auth = AuthV2(req, Map("myid" -> "mykey"))
+    assert(auth.run.isDefined)
   }
 }
