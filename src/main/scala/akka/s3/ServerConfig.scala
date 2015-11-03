@@ -2,7 +2,6 @@ package akka.s3
 
 import java.nio.file.{Path, Paths}
 
-import com.google.common.jimfs.Jimfs
 import com.typesafe.config.{Config, ConfigFactory}
 
 trait ServerConfig {

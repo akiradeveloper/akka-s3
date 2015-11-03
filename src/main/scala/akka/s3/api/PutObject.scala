@@ -7,7 +7,7 @@ import akka.http.scaladsl.server.Directives._
 import scala.collection.immutable
 
 trait PutObject { self: AuthorizedContext =>
-  def doPutObject(bucketName: String, key: String) {
+  def doPutObject(bucketName: String, key: String) = {
     val k = tree
       .findBucket(bucketName).get
       .key(key)

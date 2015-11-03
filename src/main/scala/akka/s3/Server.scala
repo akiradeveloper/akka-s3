@@ -26,7 +26,7 @@ case class Server(config: ServerConfig) extends RouteUtil {
   def doPostObject(req: HttpRequest, reqId: String) = complete("hoge")
 
   val tree = Tree(config.treePath)
-  val users = UserTable(config.adminPath)
+  val users = UserTable(config.adminPath.resolve("db.sqlite"))
 
   def handler(req: HttpRequest, requestId: String) = ExceptionHandler {
     // FIXME error should sometimes contains header info such as x-amz-delete-marker
@@ -65,8 +65,8 @@ case class Server(config: ServerConfig) extends RouteUtil {
       logRequestResult("") {
         val requestId = Random.alphanumeric.take(16).mkString
         handleExceptions(handler(req, requestId)) {
-          doOptionsObject(req, requestId) ~
-          doPostObject(req, requestId) ~
+          // doOptionsObject(req, requestId) ~
+          // doPostObject(req, requestId) ~
           extractRequest { _ => // FIXME just to dynamically create the successive routing
             val authResult: (Option[String], Boolean) =
               if (req.listFromHeaders.get("Authorization").isDefined) {
@@ -107,19 +107,18 @@ case class AuthorizedContext(tree: Tree,
                              req: HttpRequest,
                              callerId: Option[String],
                              requestId: String)
-  extends Object
-  with RouteUtil
+  extends RouteUtil
   with GetService
+  with PutBucket
+  with PutObject
+  with GetObject
   {
     def doGetBucketLocation(bucketName: String) = complete("hoge")
     def doGetBucket(bucketName: String) = complete("hoge")
     def doListParts(bucketName: String, keyName: String, uploadId: String) = complete("hoge")
     def doListMultipartUploads(bucketName: String) = complete("hoge")
-    def doGetObject(bucketName: String, keyName: String) = complete("hoge")
-    def doPutBucket(bucketName: String) = complete("hoge")
     def doUploadPart(bucketName: String, keyName: String, partNumber: Int, uploadId: String) = complete("hoge")
     def doUploadPartByCopy(bucketName: String, keyName: String) = complete("hoge")
-    def doPutObject(bucketName: String, keyName: String) = complete("hoge")
     def doDeleteBucket(bucketName: String) = complete("hoge")
     def doAbortMultipartUpload(bucketName: String, keyName: String) = complete("hoge")
     def doDeleteObject(bucketName: String, keyName: String) = complete("hoge")

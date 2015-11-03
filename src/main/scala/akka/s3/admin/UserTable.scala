@@ -19,29 +19,15 @@ case class UserTable(path: Path) {
 
   val users = TableQuery[UserTableDef]
 
-  private val db = if (path.getFileSystem == FileSystems.getDefault) {
+  private val db = {
     val url = path.toString
-    val db = Database.forURL(s"jdbc:sqlite:${url}", driver = "org.sqlite.JDBC")
-    // FIXME
+    val ret = Database.forURL(s"jdbc:sqlite:${url}", driver = "org.sqlite.JDBC")
     if (!path.exists) {
-      db withSession { implicit session =>
+      ret withSession { implicit session =>
         users.ddl.create
       }
     }
-    db
-  } else {
-    val db = Database.forURL("jdbc:sqlite:memory:", driver = "org.sqlite.JDBC")
-    db withSession { implicit  sesssion =>
-      // FIXME
-      try {
-        users.ddl.create
-      } catch {
-        case _: Throwable => {}
-      } finally {
-        users.delete
-      }
-    }
-    db
+    ret
   }
 
   private def randStr(n: Int) = {

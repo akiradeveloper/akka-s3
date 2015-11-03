@@ -6,7 +6,7 @@ import akka.http.scaladsl.server.Directives._
 import scala.collection.immutable
 
 trait PutBucket { self: AuthorizedContext =>
-  def doPutBucket(bucketName: String) {
+  def doPutBucket(bucketName: String) = {
     val b = tree.bucket(bucketName)
     b.path.exists.not.orFailWith(Error.BucketAlreadyExists())
     b.mk
