@@ -13,13 +13,13 @@ The concept is quite similar to [minio](https://github.com/minio/minio)
 but it clearly differs on the set of APIs supported.
 Minio, as its name implies, aims to build a minimum storage that supports simple PUT/GET only
 (even DELETE isn't supported) but akka-s3 supports everything as long as it's possible.
-In other words, Minio sticks to simpleness while FunctionalS3 is heading to completeness.
+In other words, Minio sticks to simpleness while akka-s3 is heading to completeness.
 
 For more information, please go to wiki.
 
 This project is still being developed.
-To make this project quickly avaiable, give your comments
-in Gitter and I will be motivated.
+To make this project quickly available, give your comments
+in Gitter channel and I will be motivated.
 
 Akira Hayakawa (@akiradeveloper)  
 e-mail: ruby.wktk@gmail.com
