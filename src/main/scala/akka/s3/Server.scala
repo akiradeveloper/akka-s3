@@ -67,7 +67,7 @@ case class Server(config: ServerConfig) extends RouteUtil {
         handleExceptions(handler(req, requestId)) {
           doOptionsObject(req, requestId) ~
           doPostObject(req, requestId) ~
-          extractRequest { req =>
+          extractRequest { _ => // FIXME just to dynamically create the successive routing
             val authResult: (Option[String], Boolean) =
               if (req.listFromHeaders.get("Authorization").isDefined) {
                 (None, true)
@@ -127,7 +127,6 @@ case class AuthorizedContext(tree: Tree,
     def doInitiateMultipartUpload(bucketName: String, keyName: String) = complete("hoge")
     def doCompleteMultipleUpload(bucketName: String, keyName: String, uploadId: String) = complete("hoge")
     def doHeadBucket(bucketName: String) = complete("hoge")
-    def doHeadObject(bucketName: String, keyName: String) = complete("hoge")
 
     val route =
       get {
@@ -237,7 +236,10 @@ case class AuthorizedContext(tree: Tree,
       } ~
       head {
         extractObject { (bucketName, keyName) =>
-          doHeadObject(bucketName, keyName)
+          // transparent-head-requests is off
+          // Note that, even when this setting is off the server will never send
+          // but message bodies on responses to HEAD requests.
+          doGetObject(bucketName, keyName)
         }
       }
   }

@@ -21,20 +21,16 @@ object ServerConfig {
   }
 
   def fromConfig(configRoot: Config) = new ServerConfig {
-    val config = configRoot.getConfig("functional.s3")
-    val rootDir = if (config.hasPath("mountpoint")) {
-      val dir = Paths.get(config.getString("mountpoint"))
-      dir.mkdirp
-      dir.emptyDirectory
-      dir
-    } else {
-      val dir = Jimfs.newFileSystem.getPath("/s3test")
-      dir.mkdirp
-      dir
-    }
+    val config = configRoot.getConfig("akka.s3")
+
+    val mp = Paths.get(config.getString("mountpoint"))
+    mp.mkdirp
+    mp.emptyDirectory
+
     treePath.mkdirp
     adminPath.mkdirp
-    override def mountpoint = rootDir
+
+    override def mountpoint = mp
     override def ip = config.getString("ip")
     override def port: Int = config.getInt("port")
   }

@@ -158,7 +158,7 @@ package object s3 {
         a
       }
     }
-    // FIXME not sure this is correct
+    // FIXME not sure this is correct (seems so dangerous)
     def applySome[B, C](x: Option[B])(f: A => B => C): C = {
       x match {
         case Some(b) => f(a)(b)
