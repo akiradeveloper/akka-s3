@@ -16,6 +16,8 @@ import org.apache.commons.io.IOUtils
 import org.apache.tika.Tika
 
 import scala.collection.JavaConversions._
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 
 package object s3 {
   val X_AMZ_DELETE_MARKER = "x-amz-delete-marker"
@@ -43,13 +45,14 @@ package object s3 {
   }
 
   implicit class PathOps(path: Path) {
-    def writeBytes(data: Source[ByteString, _])(implicit system: ActorSystem, mat: Materializer): Unit = {
-//      implicit val system = ActorSystem()
-//      implicit val mat = ActorMaterializer()
+    // should fix. should return Future
+    def writeBytes(data: Source[ByteString, Any])(implicit system: ActorSystem, mat: Materializer): Unit = {
       using(Files.newOutputStream(path, StandardOpenOption.CREATE)) { f =>
-        data.runForeach { a =>
+        val fut = data.runForeach { a: ByteString =>
+          println(s"hoge + ${a.size}")
           f.write(a.toArray)
         }
+        Await.ready(fut, Duration.Inf)
         f.flush
       }
     }

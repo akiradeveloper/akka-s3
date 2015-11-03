@@ -8,9 +8,9 @@ import scala.collection.immutable
 
 trait GetService extends ScalaXmlSupport { self: AuthorizedContext =>
   def doGetService() = {
-    val headers = immutable.Seq(
+    val headers = RawHeaderList(
       (X_AMZ_REQUEST_ID, requestId)
-    ).map(toRawHeader)
+    )
 
     // FIXME if the user is public?
 

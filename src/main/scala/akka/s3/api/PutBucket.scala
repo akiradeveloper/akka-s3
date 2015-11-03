@@ -23,9 +23,9 @@ trait PutBucket { self: AuthorizedContext =>
     // Accordingly, the signature calculations in Signature Version 4 must use us-east-1 as region,
     // even if the location constraint in the request specifies another region where the bucket is to be created.
 
-    val headers = immutable.Seq(
+    val headers = RawHeaderList(
       (X_AMZ_REQUEST_ID, requestId)
-    ).map(toRawHeader)
+    )
 
     complete(StatusCodes.OK, headers, HttpEntity.Empty)
   }

@@ -29,10 +29,10 @@ trait GetObject { self: AuthorizedContext =>
     val headers: immutable.Seq[HttpHeader] =
       ETag(version.metaT.eTag) +:
       `Last-Modified`(DateTime(version.data.lastModified.getTime)) +:
-      immutable.Seq(
+      RawHeaderList(
         (X_AMZ_REQUEST_ID, requestId),
         (X_AMZ_VERSION_ID, if (version.metaT.isVersioned) {o.get.id.toString} else {"null"})
-      ).map(toRawHeader)
+      )
       .applySome(
         hl.get("response-content-language")
       ) { a => b => RawHeader("Content-Language", b) +: a }

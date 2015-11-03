@@ -5,10 +5,13 @@ import scala.collection.immutable
 import akka.http.scaladsl.server.Directives._
 
 trait GetBucketLocation { self: AuthorizedContext =>
+
+
+
   def doGetBucketLocation(bucketName: String) = {
-    val headers = immutable.Seq(
+    val headers = RawHeaderList(
       (X_AMZ_REQUEST_ID, requestId)
-    ).map(toRawHeader)
+    )
 
     // TODO (location isn't supported)
     complete(

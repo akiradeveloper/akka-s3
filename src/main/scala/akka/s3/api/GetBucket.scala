@@ -96,9 +96,9 @@ trait GetBucket { self: AuthorizedContext =>
       None
     }
 
-    val headers = immutable.Seq(
+    val headers = RawHeaderList(
       (X_AMZ_REQUEST_ID, requestId)
-    ).map(toRawHeader)
+    )
 
     complete(
       StatusCodes.OK,

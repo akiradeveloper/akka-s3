@@ -13,7 +13,9 @@ import scala.util.Random
 trait RouteUtil {
   val extractBucket = path(Segment ~ (Slash | PathEnd))
   val extractObject = path(Segment / Rest)
-  val toRawHeader = (a: (String, String)) => RawHeader(a._1, a._2)
+  def RawHeaderList(xs: (String, String)*) = {
+    immutable.Seq(xs:_*).map(a => RawHeader(a._1, a._2))
+  }
 }
 
 case class Server(config: ServerConfig) extends RouteUtil {
@@ -27,9 +29,9 @@ case class Server(config: ServerConfig) extends RouteUtil {
     // FIXME error should sometimes contains header info such as x-amz-delete-marker
     case Error.Exception(e) => {
       // headers should be immutable.Seq
-      val headers = immutable.Seq(
+      val headers = RawHeaderList(
         (X_AMZ_REQUEST_ID, requestId)
-      ).map(toRawHeader)
+      )
 
       val o = Error.toCodeAndMessage(e)
       // Don't forget a caller ctx otherwise completion flies to unknown somewhere
@@ -41,9 +43,9 @@ case class Server(config: ServerConfig) extends RouteUtil {
     }
     case e: Throwable => {
       e.printStackTrace
-      val headers = immutable.Seq(
+      val headers = RawHeaderList(
         (X_AMZ_REQUEST_ID, requestId)
-      ).map(toRawHeader)
+      )
 
       val ste: StackTraceElement = e.getStackTrace()(0)
       val msg = s"${ste.getFileName}(${ste.getLineNumber}) ${e.getMessage}"
