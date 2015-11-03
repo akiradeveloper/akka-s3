@@ -14,7 +14,6 @@ trait RouteUtil {
   val extractBucket = path(Segment ~ (Slash | PathEnd))
   val extractObject = path(Segment / Rest)
   val toRawHeader = (a: (String, String)) => RawHeader(a._1, a._2)
-
 }
 
 case class Server(config: ServerConfig) extends RouteUtil {
@@ -103,8 +102,8 @@ case class AuthorizedContext(tree: Tree,
   with PutBucket
   with PutObject
   with GetObject
+  with GetBucketLocation
   {
-    def doGetBucketLocation(bucketName: String) = complete("hoge")
     def doGetBucket(bucketName: String) = complete("hoge")
     def doListParts(bucketName: String, keyName: String, uploadId: String) = complete("hoge")
     def doListMultipartUploads(bucketName: String) = complete("hoge")
