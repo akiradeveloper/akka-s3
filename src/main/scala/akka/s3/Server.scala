@@ -64,17 +64,12 @@ case class Server(config: ServerConfig) extends RouteUtil {
           // doOptionsObject(req, requestId) ~
           // doPostObject(req, requestId) ~
           extractRequest { _ => // FIXME just to dynamically create the successive routing
+            val getSecretKey = (accessKey: String) => users.getId(accessKey).flatMap(users.getUser(_)).map(_.secretKey).get
             val authResult: (Option[String], Boolean) =
               if (req.listFromHeaders.get("Authorization").isDefined) {
-                (None, true)
-                //              val a = Stream(AuthV2(req, m), AuthV4()).map(_.run).find(_.isDefined).flatten
-                //              a.isDefined.orFailWith(Error.SignatureDoesNotMatch())
-                //              a
+                (Stream(AuthV2(req, getSecretKey)).map(_.run).find(_.isDefined).flatten, true)
               } else if (req.listFromQueryParams.get("Signature").isDefined) {
-                //              val a = Stream(AuthV2Presigned(req, m)).map(_.run).find(_.isDefined).flatten
-                //              a.isDefined.orFailWith(Error.SignatureDoesNotMatch())
-                //              a
-                (None, true)
+                (Stream(AuthV2Presigned(req, getSecretKey)).map(_.run).find(_.isDefined).flatten, true)
               } else if (req.listFromQueryParams.get("X-Amz-Signature").isDefined) {
                 //              val a = Stream(AuthV4Presigned()).map(_.run).find(_.isDefined).flatten
                 //              a.isDefined.orFailWith(Error.SignatureDoesNotMatch())

@@ -9,6 +9,20 @@ import scala.pickling.binary.{BinaryPickle, _}
 import scala.xml.NodeSeq
 
 object Acl {
+  // FIXME owner should be string
+  // anonymous owner's ID is a string "anonymous" according to ceph but not documented
+  case class File(owner: Option[String], grants: Seq[Grant]) {
+    def write(path: Path): Unit = {
+      LoggedFile(path).put { f =>
+        f.writeBytes(this.pickle.value)
+      }
+    }
+  }
+  def read(path: Path): File = {
+    using(Files.newInputStream(LoggedFile(path).get.get)) { f =>
+      BinaryPickle(IOUtils.toByteArray(f)).unpickle[File]
+    }
+  }
 
   trait Grantee
   case class ById(id: String) extends Grantee
@@ -26,22 +40,6 @@ object Acl {
   case class ReadAcp() extends Permission
 
   case class Grant(grantee: Grantee, perm: Permission)
-
-  // FIXME owner should be string
-  // anonymous owner's ID is a string "anonymous" according to ceph but not documented
-  case class File(owner: Option[String], grants: Seq[Grant]) {
-    def write(path: Path): Unit = {
-      LoggedFile(path).put { f =>
-        f.writeBytes(this.pickle.value)
-      }
-    }
-  }
-
-  def read(path: Path): File = {
-    using(Files.newInputStream(LoggedFile(path).get.get)) { f =>
-      BinaryPickle(IOUtils.toByteArray(f)).unpickle[File]
-    }
-  }
 }
 
 // TODO

@@ -1,9 +1,27 @@
 package akka.s3
 
+import java.nio.file.{Files, Path}
+
+import org.apache.commons.io.IOUtils
+
 import scala.util.Try
 import scala.xml.NodeSeq
+import scala.pickling.Defaults._
+import scala.pickling.binary.{BinaryPickle, _}
 
 object Cors {
+  case class File(rules: Seq[Rule]) {
+    def write(path: Path): Unit = {
+      LoggedFile(path).put { f =>
+        f.writeBytes(this.pickle.value)
+      }
+    }
+  }
+  def read(path: Path): File = {
+    using(Files.newInputStream(LoggedFile(path).get.get)) { f =>
+      BinaryPickle(IOUtils.toByteArray(f)).unpickle[File]
+    }
+  }
 
   trait WildCardSupport {
     val unwrap: String
@@ -71,4 +89,6 @@ object Cors {
     rules.map { rule => rule.tryMatch(req).map {a => (rule, a)} }
       .find(_.isDefined).flatten
   }
+
+
 }

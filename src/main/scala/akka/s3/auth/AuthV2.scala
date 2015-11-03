@@ -13,6 +13,31 @@ case class AuthV2(req: HttpRequest, getSecretKey: String => String) extends Auth
   val alg = AuthV2Common(req, hl, getSecretKey)
 
   override def run = Try {
+    val (_, accessKey, signature) = splitSig
+    val secretKey = getSecretKey(accessKey)
+    val date = {
+      val amzDate = hl.get("x-amz-date")
+      if (amzDate.isDefined) {
+        // [spec]
+        // If you include the x-amz-date header, you must still include
+        // a newline character in the canonicalized string at the point
+        // where the Date value would normally be inserted.
+
+        // [spec]
+        // When an x-amz-date header is present in a request,
+        // the system will ignore any Date header when computing the request signature.
+        // Therefore, if you include the x-amz-date header,
+        // use the empty string for the Date when constructing the StringToSign.
+        ""
+      } else {
+        // We don't need to getOrElse but can just get
+        // [spec]
+        // A valid time stamp (using either the HTTP Date header or an x-amz-date alternative)
+        // is mandatory for authenticated requests.
+        hl.get("date").get
+      }
+    }
+    val stringToSign = alg.stringToSign(date)
     require(alg.computeSignature(stringToSign, secretKey) == signature)
     accessKey
   }.toOption
@@ -29,45 +54,6 @@ case class AuthV2(req: HttpRequest, getSecretKey: String => String) extends Auth
     val c = ys(1)
     require(c != "")
     (a,b,c)
-  }
-
-  def accessKey = {
-    splitSig._2
-  }
-
-  def signature: String = {
-    splitSig._3
-  }
-
-  def secretKey = {
-    getSecretKey(accessKey)
-  }
-
-  def stringToSign: String = {
-    alg.stringToSign(date)
-  }
-
-  def date = {
-    val amzDate = hl.get("x-amz-date")
-    if (amzDate.isDefined) {
-      // [spec]
-      // If you include the x-amz-date header, you must still include
-      // a newline character in the canonicalized string at the point
-      // where the Date value would normally be inserted.
-
-      // [spec]
-      // When an x-amz-date header is present in a request,
-      // the system will ignore any Date header when computing the request signature.
-      // Therefore, if you include the x-amz-date header,
-      // use the empty string for the Date when constructing the StringToSign.
-      ""
-    } else {
-      // We don't need to getOrElse but can just get
-      // [spec]
-      // A valid time stamp (using either the HTTP Date header or an x-amz-date alternative)
-      // is mandatory for authenticated requests.
-      hl.get("date").get
-    }
   }
 }
 
@@ -91,7 +77,7 @@ case class AuthV2Common(req: HttpRequest, headers: HeaderList, getSecretKey: Str
       dateOrExpire + "\n" +
       canonicalizedAmzHeaders +
       canonicalizedResource
-    // println(s)
+    println(s)
     s
   }
 

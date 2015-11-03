@@ -23,6 +23,8 @@ case class Bucket(path: Path) {
 
   val acl = path.resolve("acl")
 
+  val cors = path.resolve("cors")
+
   val versioning = path.resolve("versioning")
 
   val keys = path.resolve("keys")
