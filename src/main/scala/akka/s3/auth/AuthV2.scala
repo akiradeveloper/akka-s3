@@ -1,6 +1,6 @@
 package akka.s3
 
-import akka.http.scaladsl.model.HttpRequest
+import akka.http.scaladsl.model.{ContentType, ContentTypes, HttpRequest}
 import org.apache.commons.codec.binary.Base64
 import org.apache.commons.codec.digest.HmacUtils
 
@@ -71,9 +71,14 @@ case class AuthV2Common(req: HttpRequest, headers: HeaderList, getSecretKey: Str
   }
 
   def stringToSign(dateOrExpire: String): String = {
+    val contentType: String = req.entity.contentType match {
+      case ContentTypes.NoContentType => ""
+      case a => a.value
+    }
+
     val s = httpVerb + "\n" +
       headers.get("content-md5").getOrElse("") + "\n" +
-      headers.get("content-type").map(_.toLowerCase).getOrElse("") + "\n" +
+      contentType.toLowerCase + "\n" +
       dateOrExpire + "\n" +
       canonicalizedAmzHeaders +
       canonicalizedResource
