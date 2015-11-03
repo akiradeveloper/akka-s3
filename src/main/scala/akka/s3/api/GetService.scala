@@ -16,12 +16,15 @@ trait GetService extends ScalaXmlSupport { self: AuthorizedContext =>
 
     // FIXME
     // only ones belong to the caller will be listed
+
+    // FIXME callerId is Option
+    val a = tree.listBuckets
     complete (
       StatusCodes.OK,
       headers,
       <ListAllMyBucketsResult>
         <Owner>
-          <ID>{callerId}</ID>
+          <ID>{callerId.get}</ID>
           <DisplayName>{users.getUser(callerId.get).get.displayName}</DisplayName>
         </Owner>
         <Buckets>

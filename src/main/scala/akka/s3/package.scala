@@ -91,7 +91,7 @@ package object s3 {
     }
     def children: Seq[Path] = {
       using(Files.newDirectoryStream(path)) { p =>
-        p.iterator.toSeq
+        p.iterator.toList
       }
     }
     def lastName: String = path.getFileName.toString
