@@ -74,6 +74,6 @@ trait GetObject { self: AuthorizedContext =>
       Some(version.data.contentType) // fallback
 
     val ct = ContentType.parse(contentType.get).right.get
-    complete(HttpEntity(ct, version.data.toFile, 1 << 20))
+    complete(StatusCodes.OK, headers, HttpEntity(ct, version.data.toFile, 1 << 20))
   }
 }
