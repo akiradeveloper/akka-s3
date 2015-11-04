@@ -7,7 +7,7 @@ import scala.collection.immutable
 import scala.xml.NodeSeq
 
 trait GetBucket { self: AuthorizedContext =>
-  def doGetBucket(bucketName: String) {
+  def doGetBucket(bucketName: String) = {
 
     sealed trait Group {
       def toXML: NodeSeq

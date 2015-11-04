@@ -106,11 +106,11 @@ case class AuthorizedContext(tree: Tree,
   extends RouteUtil
   with GetService
   with PutBucket
+  with GetBucket
   with PutObject
   with GetObject
   with GetBucketLocation
   {
-    def doGetBucket(bucketName: String) = complete("hoge")
     def doListParts(bucketName: String, keyName: String, uploadId: String) = complete("hoge")
     def doListMultipartUploads(bucketName: String) = complete("hoge")
     def doUploadPart(bucketName: String, keyName: String, partNumber: Int, uploadId: String) = complete("hoge")
