@@ -18,7 +18,10 @@ trait RouteUtil {
   }
 }
 
-case class Server(config: ServerConfig) extends RouteUtil {
+case class Server(config: ServerConfig)
+  extends RouteUtil
+  with OptionsObject
+{
   val tree = Tree(config.treePath)
   val users = UserTable(config.adminPath.resolve("db.sqlite"))
 
@@ -54,7 +57,6 @@ case class Server(config: ServerConfig) extends RouteUtil {
     }
   }
 
-  def doOptionsObject(req: HttpRequest, reqId: String) = complete("hoge")
   def doPostObject(req: HttpRequest, reqId: String) = complete("hoge")
 
   val route =
@@ -62,7 +64,7 @@ case class Server(config: ServerConfig) extends RouteUtil {
       logRequestResult("") {
         val requestId = Random.alphanumeric.take(16).mkString
         handleExceptions(handler(req, requestId)) {
-          // doOptionsObject(req, requestId) ~
+          doOptionsObject(req, requestId) ~
           // doPostObject(req, requestId) ~
           extractRequest { _ => // FIXME just to dynamically create the successive routing
             val getSecretKey = (accessKey: String) => users.getId(accessKey).flatMap(users.getUser(_)).map(_.secretKey).get

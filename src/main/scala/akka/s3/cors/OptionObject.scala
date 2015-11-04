@@ -5,7 +5,7 @@ import akka.http.scaladsl.model.headers._
 import akka.http.scaladsl.server.Directives._
 import scala.collection.immutable
 
-trait OptionsObject { self: AuthorizedContext =>
+trait OptionsObject { self: Server =>
   import Cors._
   def doOptionsObject(req: HttpRequest, requestId: String) = {
     options {
