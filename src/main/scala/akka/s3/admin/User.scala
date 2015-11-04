@@ -3,11 +3,11 @@ package akka.s3
 import scala.xml.NodeSeq
 
 case class User(id: String,
-                   accessKey: String,
-                   secretKey: String,
-                   name: String,
-                   email: String,
-                   displayName: String) {
+                accessKey: String,
+                secretKey: String,
+                name: String,
+                email: String,
+                displayName: String) {
   def modifyWith(xml: NodeSeq): User = {
     this.copy(
       name = (xml \ "Name").headOption.map(_.text).getOrElse(this.name),

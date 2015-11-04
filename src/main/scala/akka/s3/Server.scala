@@ -19,9 +19,6 @@ trait RouteUtil {
 }
 
 case class Server(config: ServerConfig) extends RouteUtil {
-  def doOptionsObject(req: HttpRequest, reqId: String) = complete("hoge")
-  def doPostObject(req: HttpRequest, reqId: String) = complete("hoge")
-
   val tree = Tree(config.treePath)
   val users = UserTable(config.adminPath.resolve("db.sqlite"))
 
@@ -56,6 +53,9 @@ case class Server(config: ServerConfig) extends RouteUtil {
         Error.mkXML(o, req.uri.path.toString(), requestId))
     }
   }
+
+  def doOptionsObject(req: HttpRequest, reqId: String) = complete("hoge")
+  def doPostObject(req: HttpRequest, reqId: String) = complete("hoge")
 
   val route =
     extractRequest { req =>
