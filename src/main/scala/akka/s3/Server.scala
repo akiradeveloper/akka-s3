@@ -20,6 +20,7 @@ trait RouteUtil {
 
 case class Server(config: ServerConfig)
   extends RouteUtil
+  with AdminSupport
   with OptionsObject
 {
   val tree = Tree(config.treePath)
@@ -60,6 +61,7 @@ case class Server(config: ServerConfig)
   def doPostObject(req: HttpRequest, reqId: String) = complete("hoge")
 
   val route =
+    adminRoute ~
     extractRequest { req =>
       logRequestResult("") {
         val requestId = Random.alphanumeric.take(16).mkString

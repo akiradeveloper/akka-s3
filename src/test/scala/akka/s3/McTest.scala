@@ -30,7 +30,7 @@ class McTest extends ServerTestBase(ServerConfig.forTest) {
   override def beforeEach() {
     super.beforeEach()
 
-    val url = s"http://localhost:8080/admin/user"
+    val url = s"http://localhost:9000/admin/user"
     val httpCli = HttpClients.createDefault
     val method = new HttpPost(url.toString)
     val res = httpCli.execute(method)
