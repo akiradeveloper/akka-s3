@@ -14,6 +14,7 @@ trait RouteUtil {
   val extractBucket = path(Segment ~ (Slash | PathEnd))
   val extractObject = path(Segment / Rest)
   def RawHeaderList(xs: (String, String)*) = {
+    // headers should be immutable.Seq
     immutable.Seq(xs:_*).map(a => RawHeader(a._1, a._2))
   }
 }
@@ -26,14 +27,10 @@ case class Server(config: ServerConfig)
   val tree = Tree(config.treePath)
   val users = UserTable(config.adminPath.resolve("db.sqlite"))
   def ackError(e: Error.t)(implicit req: HttpRequest, requestId: String) = {
-    // headers should be immutable.Seq
     val headers = RawHeaderList(
       (X_AMZ_REQUEST_ID, requestId)
     )
-
     val o = Error.toCodeAndMessage(e)
-    // Don't forget a caller ctx otherwise completion flies to unknown somewhere
-
     complete(
       o.code,
       headers,
@@ -42,13 +39,11 @@ case class Server(config: ServerConfig)
   }
   def handler(implicit req: HttpRequest, requestId: String) = ExceptionHandler {
     // FIXME error should sometimes contains header info such as x-amz-delete-marker
-    case Error.Exception(e) => {
+    case Error.Exception(e) =>
       ackError(e)
-    }
-    case e: Throwable => {
+    case e: Throwable =>
       e.printStackTrace
       ackError(Error.InternalError("unknown error"))
-    }
   }
 
   def doPostObject(req: HttpRequest, reqId: String) = complete("hoge")
@@ -61,9 +56,6 @@ case class Server(config: ServerConfig)
       } else if (req.listFromQueryParams.get("Signature").isDefined) {
         (Stream(AuthV2Presigned(req, getSecretKey)).map(_.run).find(_.isDefined).flatten, true)
       } else if (req.listFromQueryParams.get("X-Amz-Signature").isDefined) {
-        //              val a = Stream(AuthV4Presigned()).map(_.run).find(_.isDefined).flatten
-        //              a.isDefined.orFailWith(Error.SignatureDoesNotMatch())
-        //              a
         (None, true)
       } else {
         (None, false)
