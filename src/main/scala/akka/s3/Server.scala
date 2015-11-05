@@ -3,7 +3,7 @@ package akka.s3
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.model.{HttpRequest, StatusCodes}
 import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.ExceptionHandler
+import akka.http.scaladsl.server.{Directive1, ExceptionHandler}
 
 import akka.http.scaladsl.marshallers.xml.ScalaXmlSupport._
 
@@ -60,6 +60,30 @@ case class Server(config: ServerConfig)
 
   def doPostObject(req: HttpRequest, reqId: String) = complete("hoge")
 
+  def extractCallerId(req: HttpRequest): Option[String] = {
+    val getSecretKey = (accessKey: String) => users.getId(accessKey).flatMap(users.getUser(_)).map(_.secretKey).get
+    val authResult: (Option[String], Boolean) =
+      if (req.listFromHeaders.get("Authorization").isDefined) {
+        (Stream(AuthV2(req, getSecretKey)).map(_.run).find(_.isDefined).flatten, true)
+      } else if (req.listFromQueryParams.get("Signature").isDefined) {
+        (Stream(AuthV2Presigned(req, getSecretKey)).map(_.run).find(_.isDefined).flatten, true)
+      } else if (req.listFromQueryParams.get("X-Amz-Signature").isDefined) {
+        //              val a = Stream(AuthV4Presigned()).map(_.run).find(_.isDefined).flatten
+        //              a.isDefined.orFailWith(Error.SignatureDoesNotMatch())
+        //              a
+        (None, true)
+      } else {
+        (None, false)
+      }
+
+    authResult match {
+      case (None, true) =>
+        Error.failWith(Error.SignatureDoesNotMatch())
+        None
+      case (a, _) => a.flatMap { x => users.getId(x) }
+    }
+  }
+
   val route =
     logRequestResult("") {
       adminRoute ~
@@ -69,28 +93,7 @@ case class Server(config: ServerConfig)
           doOptionsObject(req, requestId) ~
           // doPostObject(req, requestId) ~
           extractRequest { _ => // FIXME just to dynamically create the successive routing
-            val getSecretKey = (accessKey: String) => users.getId(accessKey).flatMap(users.getUser(_)).map(_.secretKey).get
-            val authResult: (Option[String], Boolean) =
-              if (req.listFromHeaders.get("Authorization").isDefined) {
-                (Stream(AuthV2(req, getSecretKey)).map(_.run).find(_.isDefined).flatten, true)
-              } else if (req.listFromQueryParams.get("Signature").isDefined) {
-                (Stream(AuthV2Presigned(req, getSecretKey)).map(_.run).find(_.isDefined).flatten, true)
-              } else if (req.listFromQueryParams.get("X-Amz-Signature").isDefined) {
-                //              val a = Stream(AuthV4Presigned()).map(_.run).find(_.isDefined).flatten
-                //              a.isDefined.orFailWith(Error.SignatureDoesNotMatch())
-                //              a
-                (None, true)
-              } else {
-                (None, false)
-              }
-
-            val callerId: Option[String] = authResult match {
-              case (None, true) =>
-                Error.failWith(Error.SignatureDoesNotMatch())
-                None
-              case (a, _) => a.flatMap { x => users.getId(x) }
-            }
-
+            val callerId = extractCallerId(req)
             AuthorizedContext(tree, users, req, callerId, requestId).route
           }
         }
