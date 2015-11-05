@@ -12,10 +12,13 @@ trait GetService extends ScalaXmlSupport { self: AuthorizedContext =>
       (X_AMZ_REQUEST_ID, requestId)
     )
 
-    // FIXME if the user is public?
+    // [spec]
+    // To authenticate a request, you must use a valid AWS Access Key ID that is registered with Amazon S3. Anonymous requests cannot list buckets, and you cannot list buckets that you did not create.
+    // so if the caller is anonymous? empty list?
 
-    // FIXME
-    // only ones belong to the caller will be listed
+    // [spec]
+    // The GET operation on the Service endpoint (s3.amazonaws.com) returns a list of all of the buckets owned by the authenticated sender of the request.
+
 
     // FIXME callerId is Option
     val a = tree.listBuckets
