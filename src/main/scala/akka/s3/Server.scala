@@ -61,8 +61,8 @@ case class Server(config: ServerConfig)
   def doPostObject(req: HttpRequest, reqId: String) = complete("hoge")
 
   val route =
-    adminRoute ~
     logRequestResult("") {
+      adminRoute ~
       extractRequest { req =>
         val requestId = Random.alphanumeric.take(16).mkString
         handleExceptions(handler(req, requestId)) {
