@@ -27,7 +27,7 @@ trait OptionsObject { self: Server =>
           }
         )
 
-        val rules = Cors.read(cors.get).rules
+        val rules = Cors.read(b.cors).rules
 
         val result = tryMatch(rules, corsReq)
         result.isDefined.orFailWith(Error.AccessDenied())

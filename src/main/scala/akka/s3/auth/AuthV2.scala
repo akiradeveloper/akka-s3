@@ -60,7 +60,7 @@ case class AuthV2(req: HttpRequest, getSecretKey: String => String) extends Auth
 case class AuthV2Common(req: HttpRequest, headers: HeaderList, getSecretKey: String => String) {
 
   // http://docs.aws.amazon.com/AmazonS3/latest/dev/RESTAuthentication.html
-  val subresources = Set("acl", "lifecycle", "location", "logging", "notification", "partNumber", "policy", "requestPayment", "torrent", "uploadId", "uploads", "versionId", "versioning", "versions", "website")
+  val subresources = Set("cors", "acl", "lifecycle", "location", "logging", "notification", "partNumber", "policy", "requestPayment", "torrent", "uploadId", "uploads", "versionId", "versioning", "versions", "website")
   // response-* to override the response header
   val responseOverride = Set("response-content-type", "response-content-language", "response-expires", "response-cache-control", "response-content-disposition", "response-content-encoding")
   // and ?delete (for delete multiple objects)
