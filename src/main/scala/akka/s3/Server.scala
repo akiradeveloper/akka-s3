@@ -25,36 +25,29 @@ case class Server(config: ServerConfig)
 {
   val tree = Tree(config.treePath)
   val users = UserTable(config.adminPath.resolve("db.sqlite"))
+  def ackError(e: Error.t)(implicit req: HttpRequest, requestId: String) = {
+    // headers should be immutable.Seq
+    val headers = RawHeaderList(
+      (X_AMZ_REQUEST_ID, requestId)
+    )
 
-  def handler(req: HttpRequest, requestId: String) = ExceptionHandler {
+    val o = Error.toCodeAndMessage(e)
+    // Don't forget a caller ctx otherwise completion flies to unknown somewhere
+
+    complete(
+      o.code,
+      headers,
+      Error.mkXML(o, req.uri.path.toString(), requestId)
+    )
+  }
+  def handler(implicit req: HttpRequest, requestId: String) = ExceptionHandler {
     // FIXME error should sometimes contains header info such as x-amz-delete-marker
     case Error.Exception(e) => {
-      // headers should be immutable.Seq
-      val headers = RawHeaderList(
-        (X_AMZ_REQUEST_ID, requestId)
-      )
-
-      val o = Error.toCodeAndMessage(e)
-      // Don't forget a caller ctx otherwise completion flies to unknown somewhere
-
-      complete(
-        o.code,
-        headers,
-        Error.mkXML(o, req.uri.path.toString(), requestId))
+      ackError(e)
     }
     case e: Throwable => {
       e.printStackTrace
-      val headers = RawHeaderList(
-        (X_AMZ_REQUEST_ID, requestId)
-      )
-
-      val ste: StackTraceElement = e.getStackTrace()(0)
-      val msg = s"${ste.getFileName}(${ste.getLineNumber}) ${e.getMessage}"
-      val o = Error.toCodeAndMessage(Error.InternalError(msg))
-      complete(
-        StatusCodes.InternalServerError,
-        headers,
-        Error.mkXML(o, req.uri.path.toString(), requestId))
+      ackError(Error.InternalError("unknown error"))
     }
   }
 
