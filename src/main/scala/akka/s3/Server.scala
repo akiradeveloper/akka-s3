@@ -62,8 +62,8 @@ case class Server(config: ServerConfig)
 
   val route =
     adminRoute ~
-    extractRequest { req =>
-      logRequestResult("") {
+    logRequestResult("") {
+      extractRequest { req =>
         val requestId = Random.alphanumeric.take(16).mkString
         handleExceptions(handler(req, requestId)) {
           doOptionsObject(req, requestId) ~
@@ -109,6 +109,7 @@ case class AuthorizedContext(tree: Tree,
   with GetBucket
   with PutObject
   with GetObject
+  with PutBucketCors
   with GetBucketLocation
   {
     def doListParts(bucketName: String, keyName: String, uploadId: String) = complete("hoge")
@@ -158,6 +159,13 @@ case class AuthorizedContext(tree: Tree,
       get {
         extractObject { (bucketName, keyName) =>
           doGetObject(bucketName, keyName)
+        }
+      } ~
+      put {
+        extractBucket { bucketName =>
+          parameter("cors") { _ =>
+            doPutBucketCors(bucketName)
+          }
         }
       } ~
       put {
