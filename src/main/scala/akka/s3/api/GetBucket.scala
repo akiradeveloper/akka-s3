@@ -16,7 +16,12 @@ trait GetBucket { self: AuthorizedContext =>
 
     case class Contents(version: Version) extends Group {
       val acl = Acl.read(version.acl)
-      val ownerId = acl.owner.get
+      val owner = acl.owner
+
+      val (id, displayName) = owner match {
+        case Some(a) => (owner.get, users.getUser(owner.get).get.displayName)
+        case None => ("anonymous", "")
+      }
 
       override def toXML = {
         <Contents>
@@ -26,8 +31,8 @@ trait GetBucket { self: AuthorizedContext =>
           <Size>{version.data.length}</Size>
           <StorageClass>STANDARD</StorageClass>
           <Owner>
-            <ID>{ownerId}</ID>
-            <DisplayName>{users.getUser(ownerId).get.displayName}</DisplayName>
+            <ID>{id}</ID>
+            <DisplayName>{displayName}</DisplayName>
           </Owner>
         </Contents>
       }

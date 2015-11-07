@@ -8,6 +8,9 @@ import scala.collection.immutable
 
 trait GetService extends ScalaXmlSupport { self: AuthorizedContext =>
   def doGetService() = {
+
+    callerId.isDefined.orFailWith(Error.AccessDenied())
+
     val headers = RawHeaderList(
       (X_AMZ_REQUEST_ID, requestId)
     )
