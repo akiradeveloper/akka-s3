@@ -49,7 +49,9 @@ case class Server(config: ServerConfig)
   def doPostObject(req: HttpRequest, reqId: String) = complete("hoge")
 
   def extractCallerId(req: HttpRequest): Option[String] = {
-    val getSecretKey = (accessKey: String) => users.getId(accessKey).flatMap(users.getUser(_)).map(_.secretKey).get
+    // TODO should be String => Option[String]
+    val getSecretKey: String => String = (accessKey: String) => users.getId(accessKey).flatMap(users.getUser(_)).map(_.secretKey).get
+
     val authResult: (Option[String], Boolean) =
       if (req.listFromHeaders.get("Authorization").isDefined) {
         (Stream(AuthV2(req, getSecretKey)).map(_.run).find(_.isDefined).flatten, true)

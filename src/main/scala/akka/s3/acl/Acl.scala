@@ -39,7 +39,7 @@ object Acl {
   case class WriteAcp() extends Permission // bucket only
   case class ReadAcp() extends Permission
 
-  def fromXML(xml: NodeSeq): File = {
+  def parseXML(xml: NodeSeq): File = {
     val owner = (xml \ "Owner" \ "ID").text match {
       case "anonymous" => None
       case a => Some(a)

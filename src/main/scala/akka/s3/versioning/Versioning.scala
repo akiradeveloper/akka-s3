@@ -8,10 +8,6 @@ import scala.pickling.Defaults._
 import scala.pickling.binary.{BinaryPickle, _}
 
 object Versioning {
-  type t = File
-
-  val UNVERSIONED = 0
-  val ENABLED = 1
   case class File(value: Int) {
     def write(path: Path): Unit = {
       LoggedFile(path).put { f =>
@@ -24,4 +20,7 @@ object Versioning {
       BinaryPickle(IOUtils.toByteArray(f)).unpickle[File]
     }
   }
+
+  val UNVERSIONED = 0
+  val ENABLED = 1
 }
