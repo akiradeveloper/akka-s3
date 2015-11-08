@@ -32,7 +32,7 @@ package object s3 {
 
   implicit class HttpRequestOps(unwrap: HttpRequest) {
     def listFromHeaders = HeaderList.FromRequestHeaders(unwrap)
-    def listFromQueryParams = HeaderList.FromRequestQuery(unwrap.uri.query)
+    def listFromQueryParams = HeaderList.FromRequestQuery(unwrap.uri.query())
   }
 
   // Closeable < AutoCloseable

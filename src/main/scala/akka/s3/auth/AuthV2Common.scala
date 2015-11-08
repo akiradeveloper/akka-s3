@@ -51,7 +51,7 @@ case class AuthV2Common(req: HttpRequest, headers: HeaderList, getSecretKey: Str
   def canonicalizedResource: String = {
     val pathURI = req.uri.path.toString
 
-    val l = req.uri.query
+    val l = req.uri.query()
       .sortBy(_._1)
       .filter { a =>
       val s = subresources ++ responseOverride ++ Set("delete")
