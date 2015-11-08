@@ -8,6 +8,7 @@ import akka.http.scaladsl.server.{Directive1, ExceptionHandler}
 import akka.http.scaladsl.marshallers.xml.ScalaXmlSupport._
 
 import scala.collection.immutable
+import scala.concurrent.ExecutionContext
 import scala.util.Random
 
 trait RouteUtil {
@@ -81,14 +82,15 @@ case class Server(config: ServerConfig)
           // doPostObject(req, requestId) ~
           extractRequest { _ => // FIXME just to dynamically create the successive routing
             val callerId = extractCallerId(req)
-            AuthorizedContext(tree, users, req, callerId, requestId).route
+            AuthorizedContext(this, tree, users, req, callerId, requestId).route
           }
         }
       }
     }
 }
 
-case class AuthorizedContext(tree: Tree,
+case class AuthorizedContext(server: Server,
+                             tree: Tree,
                              users: UserTable,
                              req: HttpRequest,
                              callerId: Option[String],
@@ -97,6 +99,7 @@ case class AuthorizedContext(tree: Tree,
   with GetService
   with PutBucket
   with GetBucket
+  with HeadBucket
   with PutObject
   with GetObject
   with DeleteObject
@@ -105,6 +108,7 @@ case class AuthorizedContext(tree: Tree,
   with InitiateMultipartUpload
   with UploadPart
   with ListParts
+  with CompleteMultipartUpload
   {
     val NOTIMPL = StatusCodes.NotImplemented
     def doListMultipartUploads(bucketName: String) = complete(NOTIMPL)
@@ -112,8 +116,6 @@ case class AuthorizedContext(tree: Tree,
     def doDeleteBucket(bucketName: String) = complete(NOTIMPL)
     def doAbortMultipartUpload(bucketName: String, keyName: String) = complete(NOTIMPL)
     def doDeleteMultipleObjects(bucketName: String) = complete(NOTIMPL)
-    def doCompleteMultipleUpload(bucketName: String, keyName: String, uploadId: String) = complete(NOTIMPL)
-    def doHeadBucket(bucketName: String) = complete(NOTIMPL)
 
     val route =
       get {
@@ -219,7 +221,7 @@ case class AuthorizedContext(tree: Tree,
       post {
         extractObject { (bucketName, keyName) =>
           parameter("uploadId") { uploadId =>
-            doCompleteMultipleUpload(bucketName, keyName, uploadId)
+            doCompleteMultipartUpload(bucketName, keyName, uploadId)
           }
         }
       } ~
