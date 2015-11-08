@@ -102,16 +102,16 @@ case class AuthorizedContext(tree: Tree,
   with DeleteObject
   with PutBucketCors
   with GetBucketLocation
+  with InitiateMultipartUpload
+  with UploadPart
+  with ListParts
   {
     val NOTIMPL = StatusCodes.NotImplemented
-    def doListParts(bucketName: String, keyName: String, uploadId: String) = complete(NOTIMPL)
     def doListMultipartUploads(bucketName: String) = complete(NOTIMPL)
-    def doUploadPart(bucketName: String, keyName: String, partNumber: Int, uploadId: String) = complete(NOTIMPL)
     def doUploadPartByCopy(bucketName: String, keyName: String) = complete(NOTIMPL)
     def doDeleteBucket(bucketName: String) = complete(NOTIMPL)
     def doAbortMultipartUpload(bucketName: String, keyName: String) = complete(NOTIMPL)
     def doDeleteMultipleObjects(bucketName: String) = complete(NOTIMPL)
-    def doInitiateMultipartUpload(bucketName: String, keyName: String) = complete(NOTIMPL)
     def doCompleteMultipleUpload(bucketName: String, keyName: String, uploadId: String) = complete(NOTIMPL)
     def doHeadBucket(bucketName: String) = complete(NOTIMPL)
 
