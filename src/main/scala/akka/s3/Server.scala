@@ -46,7 +46,7 @@ case class Server(config: ServerConfig)
       ackError(Error.InternalError("unknown error"))
   }
 
-  def doPostObject(req: HttpRequest, reqId: String) = complete("hoge")
+  def doPostObject(req: HttpRequest, reqId: String) = complete(StatusCodes.NotImplemented)
 
   def extractCallerId(req: HttpRequest): Option[String] = {
     // TODO should be String => Option[String]
@@ -103,16 +103,17 @@ case class AuthorizedContext(tree: Tree,
   with PutBucketCors
   with GetBucketLocation
   {
-    def doListParts(bucketName: String, keyName: String, uploadId: String) = complete("hoge")
-    def doListMultipartUploads(bucketName: String) = complete("hoge")
-    def doUploadPart(bucketName: String, keyName: String, partNumber: Int, uploadId: String) = complete("hoge")
-    def doUploadPartByCopy(bucketName: String, keyName: String) = complete("hoge")
-    def doDeleteBucket(bucketName: String) = complete("hoge")
-    def doAbortMultipartUpload(bucketName: String, keyName: String) = complete("hoge")
-    def doDeleteMultipleObjects(bucketName: String) = complete("hoge")
-    def doInitiateMultipartUpload(bucketName: String, keyName: String) = complete("hoge")
-    def doCompleteMultipleUpload(bucketName: String, keyName: String, uploadId: String) = complete("hoge")
-    def doHeadBucket(bucketName: String) = complete("hoge")
+    val NOTIMPL = StatusCodes.NotImplemented
+    def doListParts(bucketName: String, keyName: String, uploadId: String) = complete(NOTIMPL)
+    def doListMultipartUploads(bucketName: String) = complete(NOTIMPL)
+    def doUploadPart(bucketName: String, keyName: String, partNumber: Int, uploadId: String) = complete(NOTIMPL)
+    def doUploadPartByCopy(bucketName: String, keyName: String) = complete(NOTIMPL)
+    def doDeleteBucket(bucketName: String) = complete(NOTIMPL)
+    def doAbortMultipartUpload(bucketName: String, keyName: String) = complete(NOTIMPL)
+    def doDeleteMultipleObjects(bucketName: String) = complete(NOTIMPL)
+    def doInitiateMultipartUpload(bucketName: String, keyName: String) = complete(NOTIMPL)
+    def doCompleteMultipleUpload(bucketName: String, keyName: String, uploadId: String) = complete(NOTIMPL)
+    def doHeadBucket(bucketName: String) = complete(NOTIMPL)
 
     val route =
       get {
