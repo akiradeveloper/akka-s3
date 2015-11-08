@@ -9,8 +9,6 @@ import scala.pickling.binary.{BinaryPickle, _}
 import scala.xml.NodeSeq
 
 object Acl {
-  // FIXME owner should be string
-  // anonymous owner's ID is a string "anonymous" according to ceph but not documented
   case class File(owner: Option[String], grants: Seq[Grant]) {
     def write(path: Path): Unit = {
       LoggedFile(path).put { f =>
@@ -23,6 +21,8 @@ object Acl {
       BinaryPickle(IOUtils.toByteArray(f)).unpickle[File]
     }
   }
+
+  case class Grant(grantee: Grantee, perm: Permission)
 
   trait Grantee
   case class ById(id: String) extends Grantee
@@ -39,32 +39,12 @@ object Acl {
   case class WriteAcp() extends Permission // bucket only
   case class ReadAcp() extends Permission
 
-  case class Grant(grantee: Grantee, perm: Permission)
-}
-
-// TODO
-case class Acl(owner: User, grants: Seq[Acl.Grant]) {
-  import Acl._
-
-  def checkPermission(requester: User): Permission = {
-    if (requester == owner) {
-      FullControl()
-    } else {
-      // TODO
-      Deny()
+  def fromXML(xml: NodeSeq): File = {
+    val owner = (xml \ "Owner" \ "ID").text match {
+      case "anonymous" => None
+      case a => Some(a)
     }
-  }
 
-  def toXML: NodeSeq = {
-    null
-  }
-}
-
-trait AclSupport { self: Server =>
-  import Acl._
-
-  def fromXML(xml: NodeSeq): Acl.File = {
-    val owner = Some((xml \ "Owner" \ "ID").text) // tmp. we assume non-anonymous user
     val grants = (xml \ "AccessControlList" \ "Grant").map { a =>
       // TODO
       val grantee = ById((a \ "Grantee" \ "ID").text) // tmp. we assume authenticated canonical user

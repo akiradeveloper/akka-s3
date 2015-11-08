@@ -22,7 +22,7 @@ trait AdminSupport { self: Server =>
       } ~
       delete {
         complete(StatusCodes.NotImplemented)
-          } ~
+      } ~
       put {
         entity(as[String]) { s =>
           val xml = XML.loadString(s)

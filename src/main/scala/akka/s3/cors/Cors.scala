@@ -89,6 +89,4 @@ object Cors {
     rules.map { rule => rule.tryMatch(req).map {a => (rule, a)} }
       .find(_.isDefined).flatten
   }
-
-
 }
