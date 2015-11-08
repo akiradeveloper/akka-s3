@@ -99,6 +99,7 @@ case class AuthorizedContext(tree: Tree,
   with GetBucket
   with PutObject
   with GetObject
+  with DeleteObject
   with PutBucketCors
   with GetBucketLocation
   {
@@ -108,7 +109,6 @@ case class AuthorizedContext(tree: Tree,
     def doUploadPartByCopy(bucketName: String, keyName: String) = complete("hoge")
     def doDeleteBucket(bucketName: String) = complete("hoge")
     def doAbortMultipartUpload(bucketName: String, keyName: String) = complete("hoge")
-    def doDeleteObject(bucketName: String, keyName: String) = complete("hoge")
     def doDeleteMultipleObjects(bucketName: String) = complete("hoge")
     def doInitiateMultipartUpload(bucketName: String, keyName: String) = complete("hoge")
     def doCompleteMultipleUpload(bucketName: String, keyName: String, uploadId: String) = complete("hoge")

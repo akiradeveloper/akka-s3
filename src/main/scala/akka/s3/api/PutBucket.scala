@@ -3,8 +3,6 @@ package akka.s3
 import akka.http.scaladsl.model.{HttpEntity, StatusCodes}
 import akka.http.scaladsl.server.Directives._
 
-import scala.collection.immutable
-
 trait PutBucket { self: AuthorizedContext =>
   def doPutBucket(bucketName: String) = {
     val b = tree.bucket(bucketName)
