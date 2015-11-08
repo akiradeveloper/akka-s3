@@ -125,15 +125,19 @@ class AmazonSDKTest extends AmazonTestBase(ServerConfig.forTest) {
     msec += 1000 * 60 * 60 // 1 hour.
     expires.setTime(msec)
 
+    val f = getTestFile("test.txt")
+    val contentType = "text/plain"
+
     val req = new GeneratePresignedUrlRequest("mybucket", "a/b")
     req.setMethod(HttpMethod.PUT)
     req.setExpiration(expires)
+    req.setContentType(contentType)
     val url = cli.generatePresignedUrl(req)
     println(url.toString)
 
-    val f = getTestFile("test.txt")
     val httpCli = HttpClients.createDefault
     val method = new HttpPut(url.toString)
+    method.setHeader("Content-Type", contentType)
     method.setEntity(new FileEntity(f))
     val res = httpCli.execute(method)
     assert(res.getStatusLine.getStatusCode === 200)
@@ -360,10 +364,13 @@ class AmazonSDKTest extends AmazonTestBase(ServerConfig.forTest) {
 
     val httpCli = HttpClients.createDefault
 
+    val contentType = "text/plain"
+
     // PUT
     val putPre = new GeneratePresignedUrlRequest("mybucket", "a/b")
     putPre.setMethod(HttpMethod.PUT)
     putPre.setExpiration(expires)
+    putPre.setContentType(contentType)
     putPre.addRequestParameter("Content-Disposition", "hoge.txt")
 
     // FIXME
@@ -377,6 +384,7 @@ class AmazonSDKTest extends AmazonTestBase(ServerConfig.forTest) {
 
     val f = getTestFile("test.txt")
     val putReq = new HttpPut(urlPut.toString)
+    putReq.setHeader("Content-Type", contentType)
     putReq.setEntity(new FileEntity(f))
     val resPut = httpCli.execute(putReq)
     assert(resPut.getStatusLine.getStatusCode === 200)

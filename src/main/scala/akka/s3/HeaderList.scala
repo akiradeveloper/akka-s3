@@ -48,8 +48,9 @@ object HeaderList {
   }
 
   case class FromRequestQuery(q: Query) extends HeaderList {
-    override def get(name: String) = q.get(name)
-    override def filter(p: String => Boolean) = KVList.t(q).filter(p)
+    val headerList = KVList.t(q)
+    override def get(name: String) = headerList.get(name)
+    override def filter(p: String => Boolean) = headerList.filter(p)
   }
 
   case class FromMultipart(mfd: Multipart.FormData) extends HeaderList {
