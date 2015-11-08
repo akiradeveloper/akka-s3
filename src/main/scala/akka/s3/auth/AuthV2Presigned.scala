@@ -6,20 +6,16 @@ import scala.util.Try
 
 case class AuthV2Presigned(req: HttpRequest, getSecretKey: String => String) extends Auth {
 
-  def hl = HeaderList.Aggregate(Seq(req.listFromQueryParams, req.listFromHeaders))
+  val hl = HeaderList.Aggregate(Seq(req.listFromQueryParams, req.listFromHeaders))
 
   override def run = Try {
-    require(computeSignature == signature)
+    val accessKey = hl.get("AWSAccessKeyId").get
+    val expires = hl.get("Expires").get
+    val signature = hl.get("Signature").get
+    val alg = AuthV2Common(req, hl, getSecretKey)
+    val stringToSign = alg.stringToSign(expires)
+    val computed = alg.computeSignature(stringToSign, getSecretKey(accessKey))
+    require(computed == signature)
     accessKey
   }.toOption
-
-  def accessKey = hl.get("AWSAccessKeyId").get
-  def expires = hl.get("Expires").get
-  def signature = hl.get("Signature").get
-
-  def computeSignature = {
-    val a = AuthV2Common(req, hl, getSecretKey)
-    val s = a.stringToSign(expires)
-    a.computeSignature(s, getSecretKey(accessKey))
-  }
 }

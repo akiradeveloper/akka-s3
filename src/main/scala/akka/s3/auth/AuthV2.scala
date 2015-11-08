@@ -1,18 +1,26 @@
 package akka.s3
 
-import akka.http.scaladsl.model.{ContentType, ContentTypes, HttpRequest}
-import org.apache.commons.codec.binary.Base64
-import org.apache.commons.codec.digest.HmacUtils
+import akka.http.scaladsl.model.HttpRequest
 
 import scala.util.Try
 
 case class AuthV2(req: HttpRequest, getSecretKey: String => String) extends Auth {
 
-  val hl = HeaderList.Aggregate(Seq(req.listFromHeaders, req.listFromQueryParams))
-
-  val alg = AuthV2Common(req, hl, getSecretKey)
-
   override def run = Try {
+    val hl = HeaderList.Aggregate(Seq(req.listFromHeaders, req.listFromQueryParams))
+    // AWS AccessKey:Signature
+    def splitSig: (String, String, String) = {
+      val v = hl.get("authorization").getOrElse("BANG!")
+      val xs = v.split(" ")
+      val a = xs(0)
+      require(a == "AWS")
+      val ys = xs(1).split(":")
+      val b = ys(0)
+      require(b != "")
+      val c = ys(1)
+      require(c != "")
+      (a, b, c)
+    }
     val (_, accessKey, signature) = splitSig
     val secretKey = getSecretKey(accessKey)
     val date = {
@@ -37,22 +45,9 @@ case class AuthV2(req: HttpRequest, getSecretKey: String => String) extends Auth
         hl.get("date").get
       }
     }
+    val alg = AuthV2Common(req, hl, getSecretKey)
     val stringToSign = alg.stringToSign(date)
     require(alg.computeSignature(stringToSign, secretKey) == signature)
     accessKey
   }.toOption
-
-  // AWS AccessKey:Signature
-  def splitSig: (String, String, String) = {
-    val v = hl.get("authorization").getOrElse("BANG!")
-    val xs = v.split(" ")
-    val a = xs(0)
-    require(a == "AWS")
-    val ys = xs(1).split(":")
-    val b = ys(0)
-    require(b != "")
-    val c = ys(1)
-    require(c != "")
-    (a,b,c)
-  }
 }
