@@ -1,7 +1,7 @@
 package akka.s3
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import akka.http.scaladsl.model.{MediaTypes, ContentTypes, HttpEntity, StatusCodes}
+import akka.http.scaladsl.model._
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import com.google.common.hash.Hashing
@@ -125,11 +125,10 @@ trait CompleteMultipartUpload { self: AuthorizedContext =>
       (X_AMZ_VERSION_ID, "null")
     )
 
-    complete(StatusCodes.OK, headers,
-      HttpEntity(
+    complete(
+      HttpResponse(StatusCodes.OK, headers, HttpEntity.CloseDelimited(
         MediaTypes.`application/xml`, // FIXME not sure..
-        1, // FIXME should have performance issue
         Source(whitespaces #::: contents).map(ByteString(_))
-      ))
+      )))
   }
 }
