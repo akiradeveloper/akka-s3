@@ -29,7 +29,7 @@ case class AuthV2Common(req: HttpRequest, headers: HeaderList, getSecretKey: Str
       dateOrExpire + "\n" +
       canonicalizedAmzHeaders +
       canonicalizedResource
-    println(s)
+    // println(s)
     s
   }
 

@@ -6,6 +6,8 @@ import akka.stream.scaladsl.Source
 import akka.util.ByteString
 
 import scala.collection.mutable
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 
 trait HeaderList {
   def get(name: String): Option[String]
@@ -54,13 +56,15 @@ object HeaderList {
   }
 
   case class FromMultipart(mfd: Multipart.FormData) extends HeaderList {
-    var file: Source[ByteString, Any] = _
+    var bytes: ByteString = _
     val tmp = mutable.ListBuffer[(String, String)]()
-    mfd.parts.runForeach { part =>
+    val fut = mfd.parts.runForeach { part =>
       val name = part.name
       val entity = part.entity
       if (name == "file") {
-        file = part.entity.dataBytes
+        entity.dataBytes.runForeach { b =>
+          bytes = b
+        }
       } else {
         part.entity.dataBytes.runForeach { data =>
           val charset = entity.contentType.charset.value
@@ -69,6 +73,7 @@ object HeaderList {
         }
       }
     }
+    Await.ready(fut, Duration.Inf)
     val headerList = KVList.t(tmp)
 
     override def get(name: String) = headerList.get(name)

@@ -19,6 +19,7 @@ import scala.collection.JavaConversions._
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.xml.{XML, NodeSeq}
+import scala.concurrent.ExecutionContext.Implicits.global
 
 package object s3 {
 
@@ -60,13 +61,13 @@ package object s3 {
 
   implicit class PathOps(path: Path) {
     // should fix. should return Future
-    def writeBytes(data: Source[ByteString, Any])(implicit system: ActorSystem, mat: Materializer): Unit = {
+    def writeBytes(data: Source[ByteString, Any]) {
       using(Files.newOutputStream(path, StandardOpenOption.CREATE)) { f =>
-        val fut = data.runForeach { a: ByteString =>
+        val fut = data.runForeach { a =>
           f.write(a.toArray)
+          f.flush
         }
         Await.ready(fut, Duration.Inf)
-        f.flush
       }
     }
 

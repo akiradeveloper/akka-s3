@@ -23,7 +23,6 @@ trait RouteUtil {
 case class Server(config: ServerConfig)
   extends RouteUtil
   with AdminSupport
-  with OptionsObject
 {
   val tree = Tree(config.treePath)
   val users = UserTable(config.adminPath.resolve("db.sqlite"))
@@ -78,8 +77,7 @@ case class Server(config: ServerConfig)
       extractRequest { req =>
         val requestId = Random.alphanumeric.take(16).mkString
         handleExceptions(handler(req, requestId)) {
-          doOptionsObject(req, requestId) ~
-          // doPostObject(req, requestId) ~
+          PreAuthContext(this, req, requestId).route ~
           extractRequest { _ => // FIXME just to dynamically create the successive routing
             val callerId = extractCallerId(req)
             AuthorizedContext(this, tree, users, req, callerId, requestId).route
@@ -87,6 +85,20 @@ case class Server(config: ServerConfig)
         }
       }
     }
+}
+
+case class PreAuthContext(server: Server,
+                          req: HttpRequest,
+                          requestId: String)
+  extends RouteUtil
+  with OptionsObject
+  with PostObject
+{
+  val tree = server.tree
+  val users = server.users
+  val route =
+    doOptionsObject() ~
+    doPostObject()
 }
 
 case class AuthorizedContext(server: Server,

@@ -5,9 +5,9 @@ import akka.http.scaladsl.model.headers._
 import akka.http.scaladsl.server.Directives._
 import scala.collection.immutable
 
-trait OptionsObject { self: Server =>
+trait OptionsObject { self: PreAuthContext =>
   import Cors._
-  def doOptionsObject(req: HttpRequest, requestId: String) = {
+  def doOptionsObject() = {
     options {
       extractObject { (bucketName, keyName) =>
         // If CORS isn't set access should be denied
