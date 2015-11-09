@@ -28,12 +28,7 @@ trait CompleteMultipartUpload { self: AuthorizedContext =>
     // it's not of type application/xml so spray's unmarshaller crashes
     // val xml: NodeSeq = Unmarshaller.unmarshalUnsafe[NodeSeq](req.entity)
     val parts0 = Try {
-      // FIXME too bad
-      var xml: NodeSeq = null
-      val fut = req.entity.dataBytes.runForeach { bs =>
-        xml = XML.load(bs.iterator.asInputStream)
-      }
-      Await.ready(fut, Duration.Inf)
+      val xml = XMLLoad.load(req.entity.dataBytes)
       assert(xml != null)
 
       (xml \ "Part").map { x =>

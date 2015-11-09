@@ -103,6 +103,7 @@ case class AuthorizedContext(server: Server,
   with PutObject
   with GetObject
   with DeleteObject
+  with DeleteMultipleObjects
   with PutBucketCors
   with GetBucketLocation
   with InitiateMultipartUpload
@@ -115,7 +116,6 @@ case class AuthorizedContext(server: Server,
     def doUploadPartByCopy(bucketName: String, keyName: String) = complete(NOTIMPL)
     def doDeleteBucket(bucketName: String) = complete(NOTIMPL)
     def doAbortMultipartUpload(bucketName: String, keyName: String) = complete(NOTIMPL)
-    def doDeleteMultipleObjects(bucketName: String) = complete(NOTIMPL)
 
     val route =
       get {

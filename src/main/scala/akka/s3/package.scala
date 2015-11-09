@@ -18,8 +18,22 @@ import org.apache.tika.Tika
 import scala.collection.JavaConversions._
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
+import scala.xml.{XML, NodeSeq}
 
 package object s3 {
+
+  object XMLLoad {
+    // FIXME too bad
+    def load(a: Source[ByteString, Any]): NodeSeq = {
+      var xml: NodeSeq = null
+      val fut = a.runForeach { bs =>
+        xml = XML.load(bs.iterator.asInputStream)
+      }
+      Await.ready(fut, Duration.Inf)
+      xml
+    }
+  }
+
   val X_AMZ_DELETE_MARKER = "x-amz-delete-marker"
   val X_AMZ_VERSION_ID = "x-amz-version-id"
   val X_AMZ_REQUEST_ID = "x-amz-request-id"
