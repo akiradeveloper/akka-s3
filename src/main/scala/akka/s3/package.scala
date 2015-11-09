@@ -49,7 +49,6 @@ package object s3 {
     def writeBytes(data: Source[ByteString, Any])(implicit system: ActorSystem, mat: Materializer): Unit = {
       using(Files.newOutputStream(path, StandardOpenOption.CREATE)) { f =>
         val fut = data.runForeach { a: ByteString =>
-          println(s"hoge + ${a.size}")
           f.write(a.toArray)
         }
         Await.ready(fut, Duration.Inf)
