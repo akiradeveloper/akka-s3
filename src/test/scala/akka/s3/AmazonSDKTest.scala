@@ -302,13 +302,14 @@ class AmazonSDKTest extends AmazonTestBase(ServerConfig.forTest) {
     // [spec] passed as form fields to POST in the multipart/form-data encoded message body.
     val entity = MultipartEntityBuilder.create
       .addTextBody("key", "a/b")
-      .addBinaryBody("file", f)
       .addTextBody("policy", policy)
       .addTextBody("signature", signature)
       .addTextBody("AWSAccessKeyId", TestUsers.hoge.accessKey)
       .addTextBody("success_action_status", "201")
       .addTextBody("Content-Disposition", "hoge.txt")
       .addTextBody("Content-Type", "text/hoge")
+      .addBinaryBody("file", f)
+      .addTextBody("submit", "Upload to Amazon S3")
       .build
 
     reqPost.setEntity(entity)
