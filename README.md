@@ -1,3 +1,16 @@
+# Abandoned
+
+Sorry, this project is fully abandoned and will not be continued.
+The reason is - akka-stream is very unnatural to implement not-stream-like system like S3-compatible storage.
+
+As a next move, we are moving to finch, a REST API framework based on finagle.
+With some learning on the framework I reckon that
+the new project is going to be successful.
+
+So please follow me on https://github.com/akiradeveloper/fss3
+
+Akira
+
 # akka-s3 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/akiradeveloper/akka-s3?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 akka-s3 is a filesystem-backed S3-compatible storage based on Scala/Akka-Http.
